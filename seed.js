@@ -34,6 +34,7 @@ async function createDatabase() {
 
   await client.connect();
   await client.query(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp";`);
+  await client.query(`CREATE TYPE privilege AS ENUM ('admin', 'employee');`);
 
   // Define the database.
   await client.query(`
@@ -41,8 +42,7 @@ async function createDatabase() {
       id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
       username VARCHAR(255) UNIQUE NOT NULL,
       password VARCHAR(255) NOT NULL,
-      privilege VARCHAR(255) NOT NULL,
-      activated_by UUID,
+      privilege_type privilege NOT NULL,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
   `);
@@ -52,19 +52,15 @@ async function createDatabase() {
       code VARCHAR(255) UNIQUE NOT NULL,
       created_by UUID NOT NULL REFERENCES employees(id),
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      activated_by UUID REFERENCES employees(id),
       activated_at TIMESTAMPTZ
     );
-  `);
-  await client.query(`
-    ALTER TABLE employees
-    ADD CONSTRAINT fk_employees_activated_by
-    FOREIGN KEY (activated_by) REFERENCES activation_codes(id);
   `);
 
   // Insert the default user.
   await client.query(`
-    INSERT INTO employees (username, password, privilege)
-    VALUES ('admin', '${await bcrypt.hash('password', 10)}', 'admin')
+    INSERT INTO employees (username, password, privilege_type)
+    VALUES ('admin', '${bcrypt.hashSync('password', 10)}', 'admin')
     ON CONFLICT (username) DO NOTHING;
   `);
 
