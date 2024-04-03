@@ -11,7 +11,7 @@ const port = process.env.PORT;
 function checkApiKey(req: Request, res: Response, next: NextFunction) {
   const apiKey = req.headers['x-api-key'];
   if (!apiKey || Array.isArray(apiKey) || apiKey !== process.env.DB_API_KEY) {
-    return res.status(401).json({ error: 'Unauthorized.' });
+    return res.status(401).json({ message: 'Unauthorized.' });
   }
   next();
 }
@@ -28,7 +28,7 @@ app.post('/login', async (req, res) => {
     if (!username || !password) {
       return res
         .status(400)
-        .json({ error: 'Username and password are required.' });
+        .json({ message: 'Username and password are required.' });
     }
 
     const user = await pool.query(`
@@ -36,17 +36,21 @@ app.post('/login', async (req, res) => {
     `);
 
     if (user.rows.length === 0) {
-      return res.status(401).json({ error: 'Incorrect username or password.' });
+      return res
+        .status(401)
+        .json({ message: 'Incorrect username or password.' });
     }
 
     if (bcrypt.compareSync(password, user.rows[0].password)) {
       return res.status(200).json({ message: 'Login successful.' });
     } else {
-      return res.status(401).json({ error: 'Incorrect username or password.' });
+      return res
+        .status(401)
+        .json({ message: 'Incorrect username or password.' });
     }
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: 'Internal server error.' });
+    return res.status(500).json({ message: 'Internal server error.' });
   }
 });
 
@@ -55,7 +59,7 @@ app.post('/check-activation-code', async (req, res) => {
     const { code } = req.body;
 
     if (!code) {
-      return res.status(400).json({ error: 'Activation code is required.' });
+      return res.status(400).json({ message: 'Activation code is required.' });
     }
 
     const activationCode = await pool.query(`
@@ -63,13 +67,13 @@ app.post('/check-activation-code', async (req, res) => {
     `);
 
     if (activationCode.rows.length === 0) {
-      return res.status(401).json({ error: 'Invalid activation code.' });
+      return res.status(401).json({ message: 'Invalid activation code.' });
     }
 
     return res.status(200).json({ message: 'Valid activation code.' });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: 'Internal server error.' });
+    return res.status(500).json({ message: 'Internal server error.' });
   }
 });
 
@@ -78,7 +82,7 @@ app.post('/register', async (req, res) => {
     const { username, password, code } = req.body;
 
     if (!username || !password || !code) {
-      return res.status(400).json({ error: 'Missing fields.' });
+      return res.status(400).json({ message: 'Missing fields.' });
     }
 
     // Check activation code.
@@ -87,7 +91,7 @@ app.post('/register', async (req, res) => {
     `);
 
     if (activationCode.rows.length === 0) {
-      return res.status(401).json({ error: 'Invalid activation code.' });
+      return res.status(401).json({ message: 'Invalid activation code.' });
     }
 
     // Register user.
@@ -96,7 +100,7 @@ app.post('/register', async (req, res) => {
     `);
 
     if (user.rows.length > 0) {
-      return res.status(400).json({ error: 'User already exists.' });
+      return res.status(400).json({ message: 'User already exists.' });
     }
 
     const hashedPassword = bcrypt.hashSync(password, 10);
@@ -120,7 +124,7 @@ app.post('/register', async (req, res) => {
     return res.status(200).json({ message: 'User registered.' });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: 'Internal server error.' });
+    return res.status(500).json({ message: 'Internal server error.' });
   }
 });
 

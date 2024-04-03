@@ -47,6 +47,11 @@ async function createDatabase() {
     );
   `);
   await client.query(`
+    ALTER TABLE employees
+    ADD CONSTRAINT check_username_min_length CHECK (char_length(username) >= 5)
+  `);
+
+  await client.query(`
     CREATE TABLE IF NOT EXISTS activation_codes (
       id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
       code VARCHAR(255) UNIQUE NOT NULL,
