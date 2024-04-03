@@ -37,7 +37,7 @@ app.post('/login', async (req, res) => {
 
     if (user.rows.length === 0) {
       return res
-        .status(401)
+        .status(400)
         .json({ message: 'Incorrect username or password.' });
     }
 
@@ -45,7 +45,7 @@ app.post('/login', async (req, res) => {
       return res.status(200).json({ message: 'Login successful.' });
     } else {
       return res
-        .status(401)
+        .status(400)
         .json({ message: 'Incorrect username or password.' });
     }
   } catch (error) {
@@ -67,10 +67,33 @@ app.post('/check-activation-code', async (req, res) => {
     `);
 
     if (activationCode.rows.length === 0) {
-      return res.status(401).json({ message: 'Invalid activation code.' });
+      return res.status(400).json({ message: 'Invalid activation code.' });
     }
 
     return res.status(200).json({ message: 'Valid activation code.' });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Internal server error.' });
+  }
+});
+
+app.post('/check-username', async (req, res) => {
+  try {
+    const { username } = req.body;
+
+    if (!username) {
+      return res.status(400).json({ message: 'Username is required.' });
+    }
+
+    const user = await pool.query(`
+      SELECT * FROM employees WHERE username = '${username}';
+    `);
+
+    if (user.rows.length > 0) {
+      return res.status(400).json({ message: 'User already exists.' });
+    }
+
+    return res.status(200).json({ message: 'Valid username.' });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: 'Internal server error.' });
@@ -91,7 +114,7 @@ app.post('/register', async (req, res) => {
     `);
 
     if (activationCode.rows.length === 0) {
-      return res.status(401).json({ message: 'Invalid activation code.' });
+      return res.status(400).json({ message: 'Invalid activation code.' });
     }
 
     // Register user.
