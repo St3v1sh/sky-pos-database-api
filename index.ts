@@ -42,7 +42,9 @@ app.post('/login', async (req, res) => {
     }
 
     if (bcrypt.compareSync(password, user.rows[0].password)) {
-      return res.status(200).json({ message: 'Login successful.' });
+      return res
+        .status(200)
+        .json({ message: 'Login successful.', user: user.rows[0] });
     } else {
       return res
         .status(400)

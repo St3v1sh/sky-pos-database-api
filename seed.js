@@ -48,7 +48,11 @@ async function createDatabase() {
   `);
   await client.query(`
     ALTER TABLE employees
-    ADD CONSTRAINT check_username_min_length CHECK (char_length(username) >= 5)
+    ADD CONSTRAINT check_username_min_length CHECK (char_length(username) >= 5);
+  `);
+  await client.query(`
+    ALTER TABLE employees
+    ADD CONSTRAINT check_password_min_length CHECK (char_length(password) >= 8);
   `);
 
   await client.query(`
