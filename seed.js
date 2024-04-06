@@ -40,19 +40,13 @@ async function createDatabase() {
   await client.query(`
     CREATE TABLE IF NOT EXISTS employees (
       id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-      username VARCHAR(255) UNIQUE NOT NULL,
+      email VARCHAR(255) UNIQUE NOT NULL CHECK (email ~* '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$'),
+      first_name VARCHAR(255) NOT NULL,
+      last_name VARCHAR(255) NOT NULL,
       password VARCHAR(255) NOT NULL,
       privilege_type privilege NOT NULL,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
-  `);
-  await client.query(`
-    ALTER TABLE employees
-    ADD CONSTRAINT check_username_min_length CHECK (char_length(username) >= 5);
-  `);
-  await client.query(`
-    ALTER TABLE employees
-    ADD CONSTRAINT check_password_min_length CHECK (char_length(password) >= 8);
   `);
 
   await client.query(`
@@ -68,15 +62,15 @@ async function createDatabase() {
 
   // Insert the default user.
   await client.query(`
-    INSERT INTO employees (username, password, privilege_type)
-    VALUES ('admin', '${bcrypt.hashSync('password', 10)}', 'admin')
-    ON CONFLICT (username) DO NOTHING;
+    INSERT INTO employees (email, first_name, last_name, password, privilege_type)
+    VALUES ('admin@sky.pos', 'admin', 'one', '${bcrypt.hashSync(process.env.ADMIN_PASSWORD, 10)}', 'admin')
+    ON CONFLICT (email) DO NOTHING;
   `);
 
   // Insert the default activation code.
   await client.query(`
     INSERT INTO activation_codes (code, created_by)
-    VALUES ('skypos', (SELECT id FROM employees WHERE username = 'admin'))
+    VALUES ('skypos', (SELECT id FROM employees WHERE email = 'admin@sky.pos'))
     ON CONFLICT (code) DO NOTHING;
   `);
 
