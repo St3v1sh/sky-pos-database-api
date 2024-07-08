@@ -1,6 +1,6 @@
 # SKY POS
 
-This is the backend for the [SKY POS](https://github.com/sky3947/sky-pos-frontend) web application.
+This is the backend for the [SKY POS](https://github.com/st3v1sh/sky-pos-frontend) web application.
 
 ### Production
 
